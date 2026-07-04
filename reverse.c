@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 typedef struct node {
     char *line;
@@ -14,8 +15,11 @@ Node *createNode(char *line) {
         printf("malloc failed");
         exit(1);
     }
-
-    pNewNode->line = line;
+    if ((pNewNode->line = (Node*)malloc(strlen(line) + 1)) == NULL) {
+        printf("malloc failed");
+        exit(1);
+    }
+    strcpy(pNewNode->line, line);
     pNewNode->next = NULL;
     pNewNode->prev = NULL;
     return(pNewNode);
@@ -27,6 +31,7 @@ void addNode(Node** pHead, char *line) {
 
     if (*pHead == NULL) {
         *pHead = newNode;
+        return;
     }
 
     Node* pCurrent = *pHead;
@@ -42,14 +47,21 @@ void addNode(Node** pHead, char *line) {
 }
 
 // Reads input file and stores the contets of that file
-FILE *readFile(const char *inputFile) {
+void readFile(const char *inputFile, Node** pHead) {
+    char *line = NULL;
+    size_t len = 0;
+
     FILE *fp = fopen(inputFile, "r");
     if (fp == NULL) {
         printf("error: cannot open file '%s'", inputFile);
         exit(1);
     }
-
-    return(fp);
+    
+    while (getline(&line, &len, fp) != -1) {
+        addNode(pHead, line);
+    }
+    free(line);
+    fclose(fp);
 }
 
 
@@ -60,11 +72,11 @@ void writeFile() {
 }
 
 // Prints out input file reversed
-void printReverse(Node* head) {
+void printList(Node* head) {
     
     Node* pCurrent = head;
     while(pCurrent != NULL) {
-        printf("%s\n", pCurrent->line);
+        printf("%s", pCurrent->line);
         pCurrent = pCurrent->next;
     }
     return;
@@ -73,19 +85,18 @@ void printReverse(Node* head) {
 int main(int argc, char *argv[]) {
     
     Node *pHead = NULL;
-    char *line = NULL;
     if (argc > 3) {
         printf("usage: reverse <input> <output>\n");
         return(1);
     }
 
-    const char *inputName = argv[1];
-    const char *outputName = argv[2];
+    
 
     if (argc == 2) {
-        FILE *inputFile = readFile(inputName);
+        const char *inputName = argv[1];
+        readFile(inputName, &pHead);
         //addNode(pHead);
-        printReverse(pHead);
+        printList(pHead);
 
         //printf("test 1 argument");
     }
