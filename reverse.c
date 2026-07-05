@@ -1,6 +1,18 @@
+/*
+Sources:
+https://www.geeksforgeeks.org/c/doubly-linked-list-in-c/
+When creating data structure to store lines from files used this as guide to create doubly linked list.
+
+https://stackoverflow.com/questions/28132673/list-hard-links-of-a-file-c
+During testing had issues to pass test 5 because I did not have check for whether files were hardlinked or not. 
+
+*/
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 
 typedef struct node {
     char *line;
@@ -83,9 +95,8 @@ void writeFile(const char *outputFile, Node* pTail) {
         fprintf(fp, "%s", pCurrent->line);
         pCurrent = pCurrent->prev;
     }
-    printf("\n");
-    return;
     fclose(fp);
+    return;
 }
 
 // Prints out input file reversed
@@ -104,6 +115,8 @@ int main(int argc, char *argv[]) {
     
     Node *pHead = NULL;
     Node *pTail = NULL;
+    struct stat s1;
+    struct stat s2;
 
     if (argc > 3) {
         fprintf(stderr, "usage: reverse <input> <output>\n");
@@ -124,11 +137,20 @@ int main(int argc, char *argv[]) {
     if (argc == 3) {
         const char *inputName = argv[1];
         const char *outputName = argv[2];
+        stat(inputName, &s1);
+        stat(outputName, &s2);
 
         if(strcmp(inputName, outputName) == 0) {
             fprintf(stderr, "reverse: input and output file must differ\n");
             exit(1);
         }
+        
+        // Test if given files are hardlinked
+        if(s1.st_ino == s2.st_ino && s1.st_dev == s2.st_dev) {
+            fprintf(stderr, "reverse: input and output file must differ\n");
+            exit(1);
+        }
+
         pTail = readFile(inputName, &pHead);
         writeFile(outputName, pTail);
         
