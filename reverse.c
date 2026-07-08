@@ -106,6 +106,7 @@ void freeList(Node* pHead) {
     
     while(pCurrent != NULL) {
         Node *pNext = pCurrent->next;
+        free(pCurrent->line);
         free(pCurrent);
         pCurrent = pNext;
     }
