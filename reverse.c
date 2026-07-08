@@ -20,6 +20,7 @@ typedef struct node {
     struct node *prev;
 } Node;
 
+// Creates node to be added for linked list
 Node *createNode(char *line) {
     Node *pNewNode = NULL;
 
@@ -37,6 +38,7 @@ Node *createNode(char *line) {
     return(pNewNode);
 }
 
+// Adds node to linked list
 Node* addNode(Node** pHead, char *line) {
     
     Node* newNode = createNode(line); 
@@ -98,6 +100,18 @@ Node* readStdIn(FILE *fp, Node **pHead) {
     return(pTail);
 }
 
+// Frees list after program is ran.
+void freeList(Node* pHead) {
+    Node *pCurrent = pHead;
+    
+    while(pCurrent != NULL) {
+        Node *pNext = pCurrent->next;
+        free(pCurrent);
+        pCurrent = pNext;
+    }
+
+    return;
+}
 
 // Writes output file whenever one is given
 void writeFile(const char *outputFile, Node* pTail) {
@@ -135,7 +149,7 @@ int main(int argc, char *argv[]) {
     struct stat s1;
     struct stat s2;
 
-    if (argc > 3) {
+    if (argc > 3) { // When user gives more than 3 arguments gives this error
         fprintf(stderr, "usage: reverse <input> <output>\n");
         exit(1);
     } else if (argc == 1) {
@@ -151,12 +165,13 @@ int main(int argc, char *argv[]) {
         stat(inputName, &s1);
         stat(outputName, &s2);
 
+        // Checks if given files are the same
         if(strcmp(inputName, outputName) == 0) {
             fprintf(stderr, "reverse: input and output file must differ\n");
             exit(1);
         }
         
-        // Test if given files are hardlinked
+        // Checks if given files are hardlinked and gives eror if they are
         if(s1.st_ino == s2.st_ino && s1.st_dev == s2.st_dev) {
             fprintf(stderr, "reverse: input and output file must differ\n");
             exit(1);
@@ -164,10 +179,9 @@ int main(int argc, char *argv[]) {
 
         pTail = readFile(inputName, &pHead);
         writeFile(outputName, pTail);
-        
     }
     
 
-
+    freeList(pHead);
     return(0);
 }
