@@ -4,7 +4,7 @@ https://www.geeksforgeeks.org/c/doubly-linked-list-in-c/
 When creating data structure to store lines from files used this as guide to create doubly linked list.
 
 https://stackoverflow.com/questions/28132673/list-hard-links-of-a-file-c
-During testing had issues to pass test 5 because I did not have check for whether files were hardlinked or not. 
+During testing had issues to pass test 5 because I did not have check for whether files were hardlinked or not. This led me to use sys/stat.h library to overcome this.
 
 */
 
@@ -79,6 +79,24 @@ Node* readFile(const char *inputFile, Node** pHead) {
     return(pTail);
 }
 
+// Reads standard input and stores lines to linked list
+Node* readStdIn(FILE *fp, Node **pHead) {
+    char *line = NULL;
+    Node *pTail = NULL;
+    size_t len = 0;
+
+    if (fp == NULL) {
+        fprintf(stderr, "reverse: cannot read from stdin");
+        exit(1);
+    }
+
+    while (getline(&line, &len, fp) != -1) {
+        line[strcspn(line, "\n")] = '\n';
+        pTail = addNode(pHead, line);
+    }
+    free(line);
+    return(pTail);
+}
 
 
 // Writes output file whenever one is given
@@ -107,7 +125,6 @@ void printList(Node* pTail) {
         printf("%s", pCurrent->line);
         pCurrent = pCurrent->prev;
     }
-    printf("\n");
     return;
 }
 
@@ -121,20 +138,14 @@ int main(int argc, char *argv[]) {
     if (argc > 3) {
         fprintf(stderr, "usage: reverse <input> <output>\n");
         exit(1);
-    }
-
-    
-
-    if (argc == 2) {
+    } else if (argc == 1) {
+        pTail = readStdIn(stdin, &pHead);
+        printList(pTail);
+    } else if (argc == 2) {
         const char *inputName = argv[1];
         pTail = readFile(inputName, &pHead);
-        //addNode(pHead);
         printList(pTail);
-
-        //printf("test 1 argument");
-    }
-
-    if (argc == 3) {
+    } else if (argc == 3) {
         const char *inputName = argv[1];
         const char *outputName = argv[2];
         stat(inputName, &s1);
@@ -154,7 +165,6 @@ int main(int argc, char *argv[]) {
         pTail = readFile(inputName, &pHead);
         writeFile(outputName, pTail);
         
-        //printf("test 2 argument");
     }
     
 
