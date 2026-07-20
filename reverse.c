@@ -73,7 +73,6 @@ Node* readFile(const char *inputFile, Node** pHead) {
     }
     
     while (getline(&line, &len, fp) != -1) {
-        line[strcspn(line, "\n")] = '\n';
         pTail = addNode(pHead, line);
     }
     free(line);
@@ -81,7 +80,7 @@ Node* readFile(const char *inputFile, Node** pHead) {
     return(pTail);
 }
 
-// Reads standard input and stores lines to linked list
+// Reads standard input and stores lines into the linked list
 Node* readStdIn(FILE *fp, Node **pHead) {
     char *line = NULL;
     Node *pTail = NULL;
@@ -93,14 +92,13 @@ Node* readStdIn(FILE *fp, Node **pHead) {
     }
 
     while (getline(&line, &len, fp) != -1) {
-        line[strcspn(line, "\n")] = '\n';
         pTail = addNode(pHead, line);
     }
     free(line);
     return(pTail);
 }
 
-// Frees list after program is ran.
+// Frees list after program is ran. Traverses through the list freeing each node.
 void freeList(Node* pHead) {
     Node *pCurrent = pHead;
     
@@ -153,26 +151,26 @@ int main(int argc, char *argv[]) {
     if (argc > 3) { // When user gives more than 3 arguments gives this error
         fprintf(stderr, "usage: reverse <input> <output>\n");
         exit(1);
-    } else if (argc == 1) {
+    } else if (argc == 1) { // When no extra arguments are given, read from stdin and print to terminal
         pTail = readStdIn(stdin, &pHead);
         printList(pTail);
-    } else if (argc == 2) {
+    } else if (argc == 2) { // Input file is given, prints to terminal
         const char *inputName = argv[1];
         pTail = readFile(inputName, &pHead);
         printList(pTail);
-    } else if (argc == 3) {
+    } else if (argc == 3) { // Input and output file is given, write to output file.
         const char *inputName = argv[1];
         const char *outputName = argv[2];
         stat(inputName, &s1);
         stat(outputName, &s2);
 
-        // Checks if given files are the same
+        // Checks if input and output files are the same, prints error message.
         if(strcmp(inputName, outputName) == 0) {
             fprintf(stderr, "reverse: input and output file must differ\n");
             exit(1);
         }
         
-        // Checks if given files are hardlinked and gives eror if they are
+        // Checks if given files are hardlinked and prints error message if they are
         if(s1.st_ino == s2.st_ino && s1.st_dev == s2.st_dev) {
             fprintf(stderr, "reverse: input and output file must differ\n");
             exit(1);
